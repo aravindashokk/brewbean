@@ -1,0 +1,54 @@
+{
+  // Visit https://aka.ms/tsconfig to read more about this file
+  "compilerOptions": {
+    // =====================
+    // File Layout
+    // =====================
+    "rootDir": "./src",       // Input folder for TS files
+    "outDir": "./dist",       // Output folder for compiled JS
+
+    // =====================
+    // Environment Settings
+    // =====================
+    "module": "nodenext",       // Use ES Modules in Node.js
+    "moduleResolution": "nodenext", // Proper module resolution for Node ESM
+    "target": "esnext",          // Latest JS features
+    "types": ["node"],           // Include Node.js types
+    // "lib": ["esnext"],        // Optional: explicitly specify JS library features
+
+    // =====================
+    // Other Outputs
+    // =====================
+    "sourceMap": true,           // Generate source maps
+    "declaration": true,         // Generate .d.ts files
+    "declarationMap": true,      // Generate source maps for declarations
+
+    // =====================
+    // Stricter Typechecking Options
+    // =====================
+    "noUncheckedIndexedAccess": true,     // Catch missing index values
+    "exactOptionalPropertyTypes": true,   // Strict optional properties
+    "strict": true,                       // Enable all strict typechecking
+
+    // =====================
+    // Style Options (optional)
+    // =====================
+    // "noImplicitReturns": true,
+    // "noImplicitOverride": true,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
+    // "noFallthroughCasesInSwitch": true,
+    // "noPropertyAccessFromIndexSignature": true,
+
+    // =====================
+    // Recommended Options
+    // =====================
+    // For backend-only, JSX not needed
+    // "jsx": "react-jsx",         
+    "verbatimModuleSyntax": true,         // Keep exact import/export syntax
+    "isolatedModules": true,              // Ensure each file can be transpiled separately
+    "noUncheckedSideEffectImports": true, // Catch unused imports with potential side effects
+    "moduleDetection": "force",           // Force module detection for Node ESM
+    "skipLibCheck": true                  // Skip type checks in node_modules
+  }
+}
