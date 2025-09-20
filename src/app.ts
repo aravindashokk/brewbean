@@ -1,22 +1,27 @@
 import express from 'express';
 import morgan from 'morgan';
+import dotenv from 'dotenv';
+import { connectDB } from './config/database.js';
 
-const main = async () => {
-    const app = express();
-    const PORT = 3000;
+dotenv.config();
 
-    app.use(morgan('dev'));
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-    app.get('/', (req, res) => {
-        res.send('Hello, world!');
-    });
+app.use(morgan('dev'));
 
-    app.listen(PORT, () => {
-        console.log(`Server is running on http://localhost:${PORT}`);
-    });  
-};
+app.get('/', (req, res) => {
+res.send('Hello, world!');
+});
 
-main().catch((err) => {
-    console.error('Error starting the application:', err);
-    process.exit(1); 
+connectDB()
+.then(() => {
+console.log('Database connection established...');
+app.listen(PORT, () => {
+console.log(`Server is successfully listening on port ${PORT}…`);
+});
+})
+.catch((err) => {
+console.error('Database cannot be connected!!', err);
+process.exit(1);
 });
