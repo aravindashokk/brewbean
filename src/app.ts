@@ -22,9 +22,10 @@ const PORT = process.env.PORT || 3000;
 interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
-    first_name: string;
-    last_name: string;
+    firstName: string;
+    lastName: string;
     email: string;
+    profilePictureUrl: string;
   };
 }
 
@@ -35,7 +36,7 @@ app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true,
 }));
-app.use(morgan('dev'));
+// app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(express.json());
 
@@ -76,18 +77,21 @@ async function withAuth(req: AuthenticatedRequest, res: Response, next: NextFunc
 
     req.user = {
       id: authResult.user.id,
-      first_name: authResult.user.first_name,
-      last_name: authResult.user.last_name,
+      firstName: authResult.user.firstName,
+      lastName: authResult.user.lastName,
       email: authResult.user.email,
+      profilePictureUrl: authResult.user.profilePictureUrl,
     };
+    
 
     // Automatically create user in MongoDB if not exists
     let dbUser = await UserModel.findOne({ email: req.user.email });
     if (!dbUser) {
       dbUser = await UserModel.create({
-        name: `${req.user.first_name} ${req.user.last_name}`,
+        name: `${req.user.firstName} ${req.user.lastName}`,
         email: req.user.email,
         role: 'sales', // default role
+        profilePictureUrl: req.user.profilePictureUrl,
       } as IUser);
       console.log(`Created new user in DB: ${dbUser.email}`);
     }
@@ -145,9 +149,10 @@ app.get('/callback', async (req: Request, res: Response) => {
     let dbUser = await UserModel.findOne({ email: user.email });
     if (!dbUser) {
       dbUser = await UserModel.create({
-        name: `${user.first_name} ${user.last_name}`,
+        name: `${user.firstName} ${user.lastName}`,
         email: user.email,
         role: 'sales', // default role
+        profilePictureUrl: user.profilePictureUrl,
       } as IUser);
       console.log(`Created new user in DB: ${dbUser.email}`);
     }
@@ -169,7 +174,29 @@ app.get('/callback', async (req: Request, res: Response) => {
 
 // Profile
 app.get('/profile', withAuth, (req: AuthenticatedRequest, res: Response) => {
-  res.json(req.user);
+  try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        error: 'User not authenticated',
+        message: 'No user data found in request'
+      });
+    }
+
+    const profileData = {
+      firstName: req.user.firstName,
+      lastName: req.user.lastName,
+      email: req.user.email,
+      profilePictureUrl: req.user.profilePictureUrl
+    };
+
+    res.json(profileData);
+  } catch (error) {
+    console.error('Profile endpoint error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: 'Failed to retrieve profile data'
+    });
+  }
 });
 
 // Logout
@@ -202,44 +229,7 @@ app.get('/logout', withAuth, async (req: AuthenticatedRequest, res: Response) =>
   }
 });
 
-// ---------------------------
-// Example CRUD routes
-// ---------------------------
 
-// Create a new user manually (still works)
-app.post('/users', withAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { first_name, last_name, email, role } = req.body;
-
-    if (!first_name || !last_name || !email) {
-      return res.status(400).json({ error: 'first_name, last_name, and email are required' });
-    }
-
-    const name = `${first_name} ${last_name}`;
-
-    const user = await UserModel.create({
-      name,
-      email,
-      role: role || 'sales',
-    } as IUser);
-
-    res.status(201).json(user);
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ error: 'Failed to create user' });
-  }
-});
-
-// Get all users
-app.get('/users', withAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const users = await UserModel.find();
-    res.json(users);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch users' });
-  }
-});
 
 // ---------------------------
 // Start server with connectDB
